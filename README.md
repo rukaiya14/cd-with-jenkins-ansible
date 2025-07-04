@@ -14,4 +14,30 @@ This project demonstrates how to automate the **Continuous Delivery (CD)** of a 
 - Tomcat (Java app server)
 - Slack (optional for notifications)
 
+---
+
+## 📸 Screenshots
+
+## ✅ Jenkins Job Build List
+![Jenkins Jobs](Screenshots/jenkins-build-jobs.png)
+
+## ✅ Jenkins Console Log
+![Jenkins Log](Screenshots/jenkins-console-log.png)
+
+## ✅ Ansible Deployment to Staging
+![Ansible Deploy](Screenshots/ansible-deploy-staging.png)
+
+## ✅ SonarQube Code Analysis
+![SonarQube](Screenshots/sonarqube-report.png)
+
+## ✅ Java App Login Page
+![Login](Screenshots/app-login-page.png)
+
+## ✅ RabbitMQ Management Console
+![RabbitMQ](Screenshots/rabbitmq-dashboard.png)
+
+## ✅ Memcached Status Page
+![Memcached](Screenshots/memcached-status.png)
+
+
 
