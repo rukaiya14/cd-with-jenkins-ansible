@@ -39,6 +39,7 @@ This project demonstrates how to automate the **Continuous Delivery (CD)** of a 
 ## ✅ Memcached Status Page
 ![Memcached](Screenshots/memcached-status.png)
 
+---
 
 ## Learning Outcome
 
