@@ -16,7 +16,7 @@ This project demonstrates how to automate the **Continuous Delivery (CD)** of a 
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 ## ✅ Jenkins Job Build List
 ![Jenkins Jobs](Screenshots/jenkins-build-jobs.png)
@@ -38,6 +38,16 @@ This project demonstrates how to automate the **Continuous Delivery (CD)** of a 
 
 ## ✅ Memcached Status Page
 ![Memcached](Screenshots/memcached-status.png)
+
+
+## Learning Outcome
+
+- Automated application delivery using Jenkins and Ansible
+- Created Ansible playbooks to deploy Java apps to EC2
+- Integrated Jenkins with Git, Maven, and remote servers
+- Managed SSH-based deployments with inventory files and private keys
+- Used Tomcat to host Java WAR files after every successful build
+
 
 
 
