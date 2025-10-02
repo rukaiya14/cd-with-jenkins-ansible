@@ -1,62 +1,65 @@
-// FINAL JENKINSFILE: CI/CD Deployment to Windows via Ansible (WSL)
+// FINAL JENKINSFILE: Deployment to Windows via Dockerized Ansible
 
 pipeline {
-    // Agent is set to 'any' as the actual work is executed within the 'bat' command
+    // The main pipeline agent runs on the Jenkins host (Windows) for checkout and simple tasks.
     agent any
 
     environment {
-        // Placeholder environment variable (required by Groovy syntax)
-        BUILD_DATE = "${new Date().format('yyyyMMddHHmmss')}"
+        // Placeholder environment variable
+        BUILD_ID = "${env.JOB_NAME}-${env.BUILD_NUMBER}"
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Checkout Source Code') {
             steps {
-                // Jenkins automatically clones the repository based on the job configuration
-                echo "Repository checked out successfully at revision ${env.GIT_COMMIT}"
+                // Jenkins checks out the code to the workspace on the Windows host.
+                echo 'Checking out source code...'
             }
         }
 
         stage('Build Application') {
             steps {
                 // Placeholder for building your application artifact
-                // Use 'bat' for native Windows commands (like Maven/npm)
                 bat 'echo "Application build successful. Artifact ready."'
             }
         }
 
         stage('Deploy with Ansible (via Docker)') {
-    agent {
-        // Use a container with Python pre-installed. This container becomes the control node.
-        docker {
-            image 'python:3.11-slim' 
-            // Mount the entire Jenkins workspace into the container at /home/ansible
-            args '-v $PWD:/home/ansible' 
+            // CRITICAL FIX: Define a Docker agent for this stage to guarantee a Linux environment.
+            agent {
+                docker {
+                    image 'python:3.11-slim' // A minimal image where we can install Ansible
+                    // We removed the complex 'args' to fix path conflicts on Windows.
+                }
+            }
+            steps {
+                // 1. Install necessary tools inside the temporary container
+                sh 'pip install ansible'
+
+                // 2. Checkout the repository again inside the container's workspace
+                // This ensures files are accessible to the Linux shell.
+                checkout scm
+                
+                // 3. Securely retrieve the Windows credentials
+                withCredentials([usernamePassword(
+                    credentialsId: 'ansible-win-creds', // Your Windows Credential ID
+                    usernameVariable: 'WIN_USER',
+                    passwordVariable: 'WIN_PASS'
+                )]) {
+                    // 4. Execute the Ansible playbook directly using the shell (sh)
+                    // The variables are passed as extra-vars.
+                    sh '''
+                        echo "Starting WinRM deployment..."
+                        ansible-playbook -i inventory.ini deploy.yml \
+                        --extra-vars "ansible_user=$WIN_USER ansible_password=$WIN_PASS"
+                    '''
+                }
+            }
         }
-    }
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'ansible-win-creds',
-            usernameVariable: 'WIN_USER',
-            passwordVariable: 'WIN_PASS'
-        )]) {
-            // CRITICAL: Install Ansible inside the temporary container environment
-            sh 'pip install ansible'
-            
-            // Execute the playbook directly using the shell command 'sh' (available in the container)
-            sh '''
-                cd /home/ansible
-                ansible-playbook -i inventory.ini deploy.yml \
-                --extra-vars "ansible_user=$WIN_USER ansible_password=$WIN_PASS"
-            '''
-        }
-    }
-}
 
         stage('Post-Deployment Verification') {
             steps {
-                // Placeholder for running smoke tests or verification commands
-                bat 'echo "Deployment verification complete. Check Windows server."'
+                echo "Deployment complete. Verification stages would follow."
             }
         }
     }
