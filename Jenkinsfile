@@ -2,37 +2,29 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout Source Code') {
+        stage('Checkout') {
             steps {
-                echo "Checking out source code..."
+                // Pull the code from GitHub (includes Jenkinsfile, inventory, playbooks)
                 checkout scm
-            }
-        }
-
-        stage('Build Application') {
-            steps {
-                bat '''
-                    echo "Application build successful. Artifact ready."
-                '''
             }
         }
 
         stage('Deploy with Ansible (via Docker)') {
             steps {
-                // 3. Securely retrieve the Windows credentials
+                // Inject Windows target credentials from Jenkins Credentials
                 withCredentials([usernamePassword(
-                    credentialsId: 'ansible-win-creds', // Your Windows Credential ID in Jenkins
+                    credentialsId: 'ansible-win-creds',   // Your Jenkins Credential ID
                     usernameVariable: 'WIN_USER',
                     passwordVariable: 'WIN_PASS'
                 )]) {
-                    // 4. Run ansible-playbook inside a Docker container
-                    bat '''
-                        echo Starting WinRM deployment...
-                        docker run --rm ^
-                          -v %cd%:/ansible ^
-                          -w /ansible ^
-                          williamyeh/ansible:alpine3 ansible-playbook -i inventory.ini deploy.yml ^
-                          --extra-vars "ansible_user=%WIN_USER% ansible_password=%WIN_PASS%"
+                    // Run Ansible playbook inside a Docker container
+                    sh '''
+                        echo "🚀 Running Ansible inside Docker..."
+                        docker run --rm \
+                          -v $WORKSPACE:/ansible \
+                          williamyeh/ansible:alpine3 \
+                          ansible-playbook -i /ansible/inventory.ini /ansible/deploy.yml \
+                          --extra-vars "ansible_user=$WIN_USER ansible_password=$WIN_PASS"
                     '''
                 }
             }
@@ -40,7 +32,7 @@ pipeline {
 
         stage('Post-Deployment Verification') {
             steps {
-                echo "Deployment complete. Verification stages would follow."
+                echo "✅ Deployment complete. Add verification steps here if needed."
             }
         }
     }
