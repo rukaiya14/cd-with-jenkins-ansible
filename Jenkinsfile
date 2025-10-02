@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
                 checkout scm
             }
@@ -11,35 +11,32 @@ pipeline {
         stage('Deploy with Ansible (via Docker)') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'ansible-win-creds',   // Your Windows target creds for WinRM
+                    credentialsId: 'ansible-win-creds', // Your Windows Credential ID
                     usernameVariable: 'WIN_USER',
                     passwordVariable: 'WIN_PASS'
                 )]) {
-                    bat '''
-                        echo 🚀 Running Ansible inside Docker...
-                        docker run --rm ^
-                          -v "%WORKSPACE%:/ansible" ^
-                          williamyeh/ansible:alpine3 ^
-                          ansible-playbook -i /ansible/inventory.ini /ansible/deploy.yml ^
-                          --extra-vars "ansible_user=%WIN_USER% ansible_password=%WIN_PASS%"
-                    '''
+                    bat """
+                    echo 🚀 Running Ansible inside Docker...
+                    docker run --rm ^
+                        -v "${WORKSPACE}:/ansible" ^
+                        williamyeh/ansible:alpine3 ^
+                        ansible-playbook -i /ansible/inventory.ini /ansible/ansible/site.yml ^
+                        --extra-vars "ansible_user=%WIN_USER% ansible_password=%WIN_PASS%"
+                    """
                 }
             }
         }
 
         stage('Post-Deployment Verification') {
             steps {
-                echo "✅ Deployment complete. You can add verification steps here."
+                echo "Deployment complete. Add verification steps here if needed."
             }
         }
     }
 
     post {
-        always {
-            echo "Pipeline finished (success or failure)."
-        }
         success {
-            echo "🎉 Deployment succeeded!"
+            echo "✅ Deployment finished successfully."
         }
         failure {
             echo "❌ Deployment failed. Please check logs."
