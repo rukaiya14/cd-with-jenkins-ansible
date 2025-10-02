@@ -34,8 +34,8 @@ pipeline {
         )]) {
             // This command now relies on the default WSL user (rukaiya) 
             // having the /usr/bin directory in its path, which it does.
-            bat 'wsl /usr/bin/ansible-playbook -i inventory.ini deploy.yml ' +
-                '-e ansible_user="%WIN_USER%" -e ansible_password="%WIN_PASS%"'
+            bat 'wsl bash -c "/usr/bin/ansible-playbook -i inventory.ini deploy.yml ' +
+                '-e ansible_user=%WIN_USER% -e ansible_password=%WIN_PASS%"'
         }
     }
 }
