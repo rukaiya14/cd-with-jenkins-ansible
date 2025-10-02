@@ -36,7 +36,7 @@ pipeline {
                 )]) {
                     // 2. CRITICAL FIX: Execute Ansible by calling 'wsl' via the 'bat' command.
                     // Credentials are passed as extra variables using Windows syntax (%VAR%).
-                    bat "wsl /usr/bin/ansible-playbook -i inventory.ini deploy.yml " +
+                     bat "wsl -u rukaiya /usr/bin/ansible-playbook -i inventory.ini deploy.yml " +
                 "-e ansible_user=%WIN_USER% -e ansible_password=%WIN_PASS%"
                 }
             }
