@@ -26,20 +26,19 @@ pipeline {
         }
 
         stage('Deploy with Ansible (via WSL)') {
-            steps {
-                // 1. Securely retrieve the Windows credentials from Jenkins
-                withCredentials([usernamePassword(
-                    // 🔑 MUST match the ID of your 'Username with password' credential
-                    credentialsId: 'ansible-win-creds', 
-                    usernameVariable: 'WIN_USER',
-                    passwordVariable: 'WIN_PASS'
-                )]) {
-                    // 2. CRITICAL FIX: Execute Ansible by calling 'wsl' via the 'bat' command.
-                    // Credentials are passed as extra variables using Windows syntax (%VAR%).
-                    bat 'wsl -u rukaiya /usr/bin/ansible-playbook -i inventory.ini deploy.yml -e ansible_user="%WIN_USER%" -e ansible_password="%WIN_PASS%"'
-                }
-            }
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'ansible-win-creds',
+            usernameVariable: 'WIN_USER',
+            passwordVariable: 'WIN_PASS'
+        )]) {
+            // This command now relies on the default WSL user (rukaiya) 
+            // having the /usr/bin directory in its path, which it does.
+            bat 'wsl /usr/bin/ansible-playbook -i inventory.ini deploy.yml ' +
+                '-e ansible_user="%WIN_USER%" -e ansible_password="%WIN_PASS%"'
         }
+    }
+}
 
         stage('Post-Deployment Verification') {
             steps {
