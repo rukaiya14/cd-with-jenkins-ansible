@@ -1,45 +1,41 @@
-// Definitive Jenkinsfile for Ansible Deployment to Windows (via WSL)
+// FINAL JENKINSFILE: CI/CD Deployment to Windows via Ansible (WSL)
 
 pipeline {
-    // Agent is set to 'any' since the actual execution happens via the
-    // 'bat' step, which runs on the Windows host where WSL is installed.
+    // Agent is set to 'any' as the actual work is executed within the 'bat' command
     agent any
 
     environment {
-        // Define your build tool environment variables here if needed
-        // E.g., MVN_HOME = tool('Maven_3.8.6')
+        // Placeholder environment variable (required by Groovy syntax)
+        BUILD_DATE = "${new Date().format('yyyyMMddHHmmss')}"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
                 // Jenkins automatically clones the repository based on the job configuration
-                echo 'Source code checked out successfully.'
+                echo "Repository checked out successfully at revision ${env.GIT_COMMIT}"
             }
         }
 
         stage('Build Application') {
             steps {
-                // Placeholder for building your application (e.g., a Java WAR file)
-                // Use 'bat' for native Windows commands (like Maven, npm, etc.)
-                bat 'echo "Application build steps would run here"'
-                bat 'echo "Artifact created and ready for deployment"'
+                // Placeholder for building your application artifact
+                // Use 'bat' for native Windows commands (like Maven/npm)
+                bat 'echo "Application build successful. Artifact ready."'
             }
         }
 
         stage('Deploy with Ansible (via WSL)') {
             steps {
-                // This block securely retrieves the Windows credentials
-                withCredentials([
-                    usernamePassword(
-                        // 🔑 This ID MUST match the 'Username with password' credential created in Jenkins
-                        credentialsId: 'ansible-win-creds', 
-                        usernameVariable: 'WIN_USER',
-                        passwordVariable: 'WIN_PASS'
-                    )
-                ]) {
-                    // CRITICAL STEP: Use 'bat' to execute the 'wsl' command.
-                    // Credentials are passed as extra variables, overriding the inventory file.
+                // 1. Securely retrieve the Windows credentials from Jenkins
+                withCredentials([usernamePassword(
+                    // 🔑 MUST match the ID of your 'Username with password' credential
+                    credentialsId: 'ansible-win-creds', 
+                    usernameVariable: 'WIN_USER',
+                    passwordVariable: 'WIN_PASS'
+                )]) {
+                    // 2. CRITICAL FIX: Execute Ansible by calling 'wsl' via the 'bat' command.
+                    // Credentials are passed as extra variables using Windows syntax (%VAR%).
                     bat "wsl ansible-playbook -i inventory.ini deploy.yml " +
                         "-e ansible_user=%WIN_USER% -e ansible_password=%WIN_PASS%"
                 }
@@ -48,8 +44,8 @@ pipeline {
 
         stage('Post-Deployment Verification') {
             steps {
-                // Optional: Add steps to verify deployment success
-                bat 'echo "Deployment successful! Verification complete."'
+                // Placeholder for running smoke tests or verification commands
+                bat 'echo "Deployment verification complete. Check Windows server."'
             }
         }
     }
