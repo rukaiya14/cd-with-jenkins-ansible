@@ -25,17 +25,30 @@ pipeline {
             }
         }
 
-        stage('Deploy with Ansible (via WSL)') {
+        stage('Deploy with Ansible (via Docker)') {
+    agent {
+        // Use a container with Python pre-installed. This container becomes the control node.
+        docker {
+            image 'python:3.11-slim' 
+            // Mount the entire Jenkins workspace into the container at /home/ansible
+            args '-v $PWD:/home/ansible' 
+        }
+    }
     steps {
         withCredentials([usernamePassword(
             credentialsId: 'ansible-win-creds',
             usernameVariable: 'WIN_USER',
             passwordVariable: 'WIN_PASS'
         )]) {
-            // This command now relies on the default WSL user (rukaiya) 
-            // having the /usr/bin directory in its path, which it does.
-            bat 'wsl bash -c "/usr/bin/ansible-playbook -i inventory.ini deploy.yml ' +
-                '-e ansible_user=%WIN_USER% -e ansible_password=%WIN_PASS%"'
+            // CRITICAL: Install Ansible inside the temporary container environment
+            sh 'pip install ansible'
+            
+            // Execute the playbook directly using the shell command 'sh' (available in the container)
+            sh '''
+                cd /home/ansible
+                ansible-playbook -i inventory.ini deploy.yml \
+                --extra-vars "ansible_user=$WIN_USER ansible_password=$WIN_PASS"
+            '''
         }
     }
 }
