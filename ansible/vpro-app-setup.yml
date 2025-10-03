@@ -1,41 +1,23 @@
 ---
 - name: Deploy VPro Application
-  hosts: all
-  become: yes
+  hosts: windows_servers
+  gather_facts: no
   tasks:
 
     - name: Copy ROOT.war to Tomcat webapps
-      copy:
-        src: artifacts/ROOT.war
-        dest: /usr/local/tomcat8/webapps/ROOT.war
-        owner: tomcat
-        group: tomcat
-        mode: '0644'
-      register: deploy_info
-      tags:
-        - deploy
+      win_copy:
+        src: files/ROOT.war
+        dest: C:\Tomcat8\webapps\ROOT.war
+        force: yes
 
-    - name: Wait until ROOT.war is extracted to ROOT directory
-      wait_for:
-        path: /usr/local/tomcat8/webapps/ROOT
+    - name: Wait until ROOT directory is extracted
+      win_wait_for:
+        path: C:\Tomcat8\webapps\ROOT
         state: directory
         timeout: 120
-      when: deploy_info.changed
-      tags:
-        - deploy
-
-#    - name: Deploy web configuration file
-#      template:
-#        src: templates/application.j2
-#        dest: /usr/local/tomcat8/webapps/ROOT/WEB-INF/classes/application.properties
-#        force: yes
-#      notify:
-#        - Restart Tomcat
-#      tags:
-#        - deploy
 
   handlers:
     - name: Restart Tomcat
-      service:
-        name: tomcat
+      win_service:
+        name: Tomcat8
         state: restarted

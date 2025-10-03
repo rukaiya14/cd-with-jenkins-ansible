@@ -1,33 +1,33 @@
 ---
-- name: Setup Tomcat 8 Service
-  hosts: all
-  become: yes  # Run tasks as root
+- name: Setup Tomcat 8 Service on Windows
+  hosts: windows_servers
+  gather_facts: yes
   tasks:
 
-    - name: Copy Ubuntu 16+ systemd service file
-      copy:
-        src: templates/ubuntu16-svcfile.j2
-        dest: /etc/systemd/system/tomcat.service
-        mode: "a+x"
-      when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 16
+    - name: Ensure Tomcat directory exists
+      win_file:
+        path: C:\Tomcat8
+        state: directory
 
-    - name: Reload Tomcat service config on Ubuntu 14/15
-      command: update-rc.d tomcat defaults
-      when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int < 16
+    - name: Copy Tomcat binaries
+      win_copy:
+        src: files/tomcat8.zip
+        dest: C:\Tomcat8\tomcat8.zip
 
-    - name: Reload Tomcat service config on CentOS 6
-      command: chkconfig --add tomcat
-      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version | int == 6
+    - name: Extract Tomcat zip
+      win_unzip:
+        src: C:\Tomcat8\tomcat8.zip
+        dest: C:\Tomcat8
+        removes: C:\Tomcat8\tomcat8.zip
 
-    - name: Force systemd to reload configs on Ubuntu 16+ or CentOS 7+
-      systemd:
-        daemon_reload: yes
-      when: (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int >= 16) or
-            (ansible_distribution == 'CentOS' and ansible_distribution_major_version | int >= 7)
+    - name: Update server.xml to use port 7080
+      win_replace:
+        path: C:\Tomcat8\conf\server.xml
+        regexp: 'port="8080"'
+        replace: 'port="7080"'
 
-    - name: Start & enable Tomcat 8 service
-      service:
-        name: tomcat
+    - name: Ensure Tomcat service is installed
+      win_service:
+        name: Tomcat8
+        start_mode: auto
         state: started
-        enabled: yes
-
