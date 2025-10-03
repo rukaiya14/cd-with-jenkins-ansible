@@ -9,27 +9,19 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                echo "Checking out code from Git repository..."
-                checkout([$class: 'GitSCM', branches: [[name: 'main']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/rukaiya14/cd-with-jenkins-ansible.git',
-                        credentialsId: 'ansible-win-creds'
-                    ]]
-                ])
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/main']],
+                          userRemoteConfigs: [[url: 'https://github.com/rukaiya14/cd-with-jenkins-ansible.git', credentialsId: 'github-token']]])
             }
         }
 
         stage('Run Ansible Playbook') {
             steps {
-                echo "Running Ansible Playbook to setup Tomcat 8..."
                 bat """
-                    docker run --rm ^
-                        -v "%WORKSPACE%:/ansible" ^
-                        williamyeh/ansible:alpine3 ^
-                        ansible-playbook -i /ansible/inventory.ini /ansible/ansible/site.yml ^
-                        --extra-vars "ansible_user=%WIN_USER% ansible_password=%WIN_PASS%"
+                docker run --rm -v "%WORKSPACE%:/ansible" ^
+                    williamyeh/ansible:alpine3 ^
+                    ansible-playbook -i /ansible/inventory.ini /ansible/ansible/site.yml ^
+                    --extra-vars "ansible_user=%WIN_USER% ansible_password=%WIN_PASS%"
                 """
             }
         }

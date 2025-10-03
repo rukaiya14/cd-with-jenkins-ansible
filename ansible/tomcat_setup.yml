@@ -6,19 +6,19 @@
 
     - name: Ensure Tomcat directory exists
       win_file:
-        path: C:\Tomcat8
+        path: C:\Tomcat9
         state: directory
 
     - name: Copy Tomcat binaries
       win_copy:
-        src: files/tomcat8.zip
-        dest: C:\Tomcat8\tomcat8.zip
+        src: files/tomcat9.zip
+        dest: C:\Tomcat9\tomcat9.zip
 
     - name: Extract Tomcat zip
       win_unzip:
-        src: C:\Tomcat8\tomcat8.zip
-        dest: C:\Tomcat8
-        removes: C:\Tomcat8\tomcat8.zip
+        src: C:\Tomcat9\tomcat9.zip
+        dest: C:\Tomcat9
+        removes: C:\Tomcat9\tomcat9.zip
 
     - name: Update server.xml to use port 7080
       win_replace:
