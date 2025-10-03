@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        WIN_USER = "AnsibleDeploy"
+        WIN_PASS = credentials('winrm-pass') // Stored in Jenkins credentials
+    }
+
     stages {
         stage('Checkout SCM') {
             steps {
@@ -10,14 +15,12 @@ pipeline {
 
         stage('Deploy with Ansible (via Docker)') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'ansible-win-creds', // Your Windows Credential ID
-                    usernameVariable: 'WIN_USER',
-                    passwordVariable: 'WIN_PASS'
-                )]) {
+                withCredentials([usernamePassword(credentialsId: 'winrm-pass', 
+                                                  usernameVariable: 'WIN_USER', 
+                                                  passwordVariable: 'WIN_PASS')]) {
                     bat """
-                    echo 🚀 Running Ansible inside Docker...
-                    docker run --rm ^
+                        echo 🚀 Running Ansible inside Docker...
+                        docker run --rm ^
                         -v "${WORKSPACE}:/ansible" ^
                         williamyeh/ansible:alpine3 ^
                         ansible-playbook -i /ansible/inventory.ini /ansible/ansible/site.yml ^
