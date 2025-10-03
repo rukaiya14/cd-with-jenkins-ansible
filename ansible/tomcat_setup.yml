@@ -1,5 +1,5 @@
 ---
-- name: Setup Tomcat 8 Service on Windows
+- name: Setup Tomcat 8 on Windows
   hosts: windows_servers
   gather_facts: yes
   tasks:
@@ -26,7 +26,7 @@
         regexp: 'port="8080"'
         replace: 'port="7080"'
 
-    - name: Ensure Tomcat service is installed
+    - name: Ensure Tomcat service is installed and started
       win_service:
         name: Tomcat8
         start_mode: auto
